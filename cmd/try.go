@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/finove/golibused/pkg/errormsg"
 	"github.com/finove/golibused/pkg/logger"
 	"github.com/finove/golibused/pkg/vconfig"
 	"github.com/spf13/cobra"
@@ -11,7 +14,7 @@ var (
 	tryCfgFileName string
 )
 
-var tryWhatList = []string{"log", "cfg"}
+var tryWhatList = []string{"log", "cfg", "errmsg"}
 
 var tryCmd = &cobra.Command{
 	Use:   "try",
@@ -21,6 +24,8 @@ var tryCmd = &cobra.Command{
 		switch tryWhat {
 		case "cfg":
 			testCfg()
+		case "errmsg":
+			testErrorMsg()
 		default:
 			testLog()
 		}
@@ -55,4 +60,19 @@ func testLog() {
 	logger.ErrorFor("toFile", "to file log info %d", 11)
 	logger.WarningFor("toFile", "to file log info %d", 12)
 	logger.InfoFor("toFile", "to file log info %d", 13)
+}
+
+func testErrorMsg() {
+	errormsg.AddErrorMessages(map[int][]string{
+		2001: {"403", "fail3"},
+		2002: {"404", "fail4"},
+		2003: {"494", "fail5"},
+	})
+	errormsg.AddErrorMessage(1002, "401", "未登录", "认证失败或没有授权")
+	logger.Info("code 0 = %d %s", errormsg.HTTPStatus(0), errormsg.Message(0))
+	logger.Info("code 1001 = %d %s", errormsg.HTTPStatus(1001), errormsg.Message(1001, fmt.Errorf("more %s", "info")))
+	logger.Info("code 1002 = %d %s", errormsg.HTTPStatus(1002), errormsg.Message(1002, fmt.Errorf("补充失败信息 %d", 1002)))
+	logger.Info("code 2001 = %d %s", errormsg.HTTPStatus(2001), errormsg.Message(2001))
+	logger.Info("code 2002 = %d %s", errormsg.HTTPStatus(2002), errormsg.Message(2002))
+	logger.Info("code 2003 = %d %s", errormsg.HTTPStatus(2003), errormsg.Message(2003))
 }
