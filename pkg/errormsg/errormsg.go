@@ -1,6 +1,7 @@
 package errormsg
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -121,6 +122,39 @@ func HTTPStatus(code int) (status int) {
 		status = 400
 	}
 	return
+}
+
+// ErrorResponse error response
+type ErrorResponse struct {
+	Code    int    `json:"code"`    // 响应码
+	Message string `json:"message"` // 响应描述
+	details []string
+}
+
+// NewError init new error response
+func NewError(code int) *ErrorResponse {
+	return &ErrorResponse{
+		Code:    code,
+		Message: Message(code),
+	}
+}
+
+// Error implement error interface
+func (er *ErrorResponse) Error() string {
+	return fmt.Sprintf("%d:%s", er.Code, er.Message)
+}
+
+// StatusCode http status code
+func (er *ErrorResponse) StatusCode() int {
+	return HTTPStatus(er.Code)
+}
+
+// WithDetails add more error info
+func (er *ErrorResponse) WithDetails(details ...string) *ErrorResponse {
+	newError := *er
+	newError.details = make([]string, 0, len(details))
+	newError.details = append(newError.details, details...)
+	return &newError
 }
 
 func init() {
