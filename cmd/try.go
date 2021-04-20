@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/finove/golibused/pkg/errormsg"
 	"github.com/finove/golibused/pkg/logger"
+	"github.com/finove/golibused/pkg/timedo"
 	"github.com/finove/golibused/pkg/vconfig"
 	"github.com/spf13/cobra"
 )
@@ -26,6 +28,8 @@ var tryCmd = &cobra.Command{
 			testCfg()
 		case "errmsg":
 			testErrorMsg()
+		case "timedo":
+			testTimeDO()
 		default:
 			testLog()
 		}
@@ -75,4 +79,25 @@ func testErrorMsg() {
 	logger.Info("code 2001 = %d %s", errormsg.HTTPStatus(2001), errormsg.Message(2001))
 	logger.Info("code 2002 = %d %s", errormsg.HTTPStatus(2002), errormsg.Message(2002))
 	logger.Info("code 2003 = %d %s", errormsg.HTTPStatus(2003), errormsg.Message(2003))
+}
+
+func testTimeDO() {
+	var s1 = time.Now()
+	var s2 = s1.Add(time.Hour)
+	doCheck(s1, s2, 30*time.Minute, 30*time.Minute)
+	doCheck(s1, s2, 60*time.Minute, 30*time.Minute)
+	doCheck(s1, s2, 75*time.Minute, 30*time.Minute)
+	doCheck(s1, s2, 90*time.Minute, 30*time.Minute)
+	doCheck(s2, s1, 30*time.Minute, 30*time.Minute)
+	doCheck(s2, s1, 30*time.Minute, 60*time.Minute)
+	doCheck(s2, s1, 30*time.Minute, 75*time.Minute)
+	doCheck(s2, s1, 30*time.Minute, 90*time.Minute)
+	f, t, err := timedo.DateDuration("2021-04-11", "2021-04-18")
+	logger.Info("timedo dateduration %v - %v, err %v", f, t, err)
+	f, t = timedo.Week(time.Now(), true)
+	logger.Info("timedo week %v - %v", f, t)
+}
+
+func doCheck(s1, s2 time.Time, d1, d2 time.Duration) {
+	logger.Info("timedo %s-%s %s-%s %v", s1.Format("15:04:05"), s1.Add(d1).Format("15:04:05"), s2.Format("15:04:05"), s2.Add(d2).Format("15:04:05"), timedo.Intersection(s1, d1, s2, d2))
 }

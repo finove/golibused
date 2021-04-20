@@ -83,6 +83,26 @@ func (p *RedisPool) Rdo(commandName string, args ...interface{}) (reply interfac
 	return c.Do(commandName, args...)
 }
 
+func (p *RedisPool) ScanKeys(match string) (keys []string) {
+	var err error
+	var keyResponse []interface{}
+	var keyValues []string
+	var nextCursor = "0"
+	for {
+		keyResponse, err = redis.Values(p.Rdo("SCAN", nextCursor, "match", match, "count", 1000))
+		if err != nil || len(keyResponse) < 2 {
+			break
+		}
+		nextCursor, err = redis.String(keyResponse[0], err)
+		keyValues, err = redis.Strings(keyResponse[1], err)
+		keys = append(keys, keyValues...)
+		if nextCursor == "0" || err != nil {
+			break
+		}
+	}
+	return
+}
+
 // SubscribeHandle 处理redis订阅消息
 func (p *RedisPool) SubscribeHandle(handle PubSubHandle) (err error) {
 	if p.sub == nil {
