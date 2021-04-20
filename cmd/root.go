@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const golibusedVersion = "0.0.1"
+const golibusedVersion = "1.0.0"
 
 var (
 	configFile string
